@@ -1,5 +1,5 @@
 {
-  "name": "Leandrocord - Matrix (leandroaugust0)",
+  "name": "Leandrocord - (leandroaugust0)",
   "theme": {
     "colors": {
       "primary": {
@@ -8,8 +8,8 @@
         "200": "#A3D9A5",
         "300": "#7BC47F",
         "400": "#57AE5B",
-        "500": "#BF211E",
-        "600": "#C95D63",
+        "500": "#FFB700",
+        "600": "#FFC300",
         "700": "#207227",
         "800": "#0E5814",
         "900": "#05400A"
