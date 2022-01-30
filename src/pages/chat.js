@@ -1,30 +1,71 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import React from "react";
-import appConfig from "../config.json";
+import appConfig from "../../config.json";
+import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+import { ButtonSendSticker } from "../components/ButtonSendSticker";
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQwMzMxOCwiZXhwIjoxOTU4OTc5MzE4fQ.l8F2dmBPh_ml-4auo4aw4tgAdJcFHZzlGwRjSG1C8dc";
+const SUPABASE_URL = "https://tjykzvzphnruerafmjcw.supabase.co";
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escutaMensagemEmTempoReal(adicionaMensagem) {
+  return supabaseClient
+    .from("mensagens")
+    .on("INSERT", (respostaLive) => {
+      adicionaMensagem(respostaLive.new);
+    })
+    .subscribe();
+}
 
 export default function ChatPage() {
   const [mensagem, setMensagem] = React.useState("");
   const [listaMensagens, setListaMensagens] = React.useState([]);
+  const roteamento = useRouter();
+  const usuarioLogado = roteamento.query.username;
 
-  function handleNovaMensage(novaMensagem) {
-  
+  React.useEffect(() => {
+    supabaseClient
+      .from("mensagens")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        //console.log("Dados da consulta:", data);
+        setListaMensagens(data);
+      });
+
+    escutaMensagemEmTempoReal((novaMensagem) => {
+      console.log("Nova mensagem:", novaMensagem);
+      setListaMensagens((valorAtualDaLista) => {
+        return [novaMensagem, ...valorAtualDaLista];
+      });
+    });
+  }, []);
+
+  function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-      id: listaMensagens.length + 1, 
-      de: "leandroaugust0",
+      // id: listaMensagens.length + 1,
+      de: usuarioLogado,
       texto: novaMensagem,
     };
 
-    setListaMensagens([
-      mensagem,
-      ...listaMensagens,
-    ]);
+    supabaseClient
+      .from("mensagens")
+      .insert([
+        // Tem que ser um objeto com os mesmos campos que escreveu no supabase
+        mensagem,
+      ])
+      .then(({ data }) => {
+        console.log("Criando mensagem: ", data);
+      });
+
     setMensagem("");
   }
 
   function handleDeleteMensagem(mensagemAtual) {
-   
     const id = mensagemAtual.id;
- 
+
     const messagesListFiltered = listaMensagens.filter((message) => {
       return message.id != id;
     });
@@ -38,7 +79,7 @@ export default function ChatPage() {
         alignItems: "center",
         justifyContent: "center",
         backgroundImage:
-          "url(https://initiate.alphacoders.com/images/798/stretched-1920-1081-798461.jpg?3881)",
+          "url(https://images7.alphacoders.com/798/thumb-1920-798461.jpg)",
         width: "100%",
         height: "100%",
         backgroundRepeat: "no-repeat",
@@ -53,7 +94,7 @@ export default function ChatPage() {
           flex: 1,
           boxShadow: "0 2px 10px 0 rgb(0 0 0 / 20%)",
           borderRadius: "5px",
-          backgroundColor: appConfig.theme.colors.neutrals[100],
+          backgroundColor: appConfig.theme.colors.neutrals[600],
           height: "100%",
           maxWidth: "95%",
           maxHeight: "95vh",
@@ -68,11 +109,11 @@ export default function ChatPage() {
             display: "flex",
             flex: 1,
             height: "80%",
-            backgroundColor: appConfig.theme.colors.neutrals[200],
+            backgroundColor: appConfig.theme.colors.neutrals[700],
             flexDirection: "column",
             borderRadius: "5px",
             padding: "16px",
-            opacity: 0.7,
+            opacity: 0.8,
           }}
         >
           <MessageList
@@ -97,58 +138,33 @@ export default function ChatPage() {
               // verifica se o enter vai ser pressionado
               onKeyPress={(event) => {
                 if (event.key === "Enter") {
-                  // retira o comportamento padrão do enter (quebrar uma linha)
+                  // retira o comportamento padrão do enter (quebra de linha)
                   event.preventDefault();
-                  handleNovaMensage(mensagem);
+                  handleNovaMensagem(mensagem);
                 }
               }}
               placeholder="Insira sua mensagem aqui..."
               type="textarea"
               styleSheet={{
                 width: "100%",
+                height: "100%",
                 resize: "none",
                 borderRadius: "5px",
                 padding: "6px 8px",
-                backgroundColor: appConfig.theme.colors.neutrals[700],
+                backgroundColor: appConfig.theme.colors.neutrals[600],
                 marginRight: "6px",
-                color: appConfig.theme.colors.neutrals[200],
+                color: appConfig.theme.colors.neutrals[100],
+                opacity: 0.9,
               }}
             />
-            <Button
-              size="lg"
-              variant="primary"
-              colorVariant="dark"
-              label={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="feather feather-send"
-                >
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              }
-              buttonColors={{
-                contrastColor: appConfig.theme.colors.neutrals["000"],
-                mainColor: appConfig.theme.colors.neutrals[800],
-                mainColorLight: appConfig.theme.colors.neutrals[900],
-                mainColorStrong: appConfig.theme.colors.neutrals[900],
-              }}
-              styleSheet={{
-                borderRadius: "5px",
-              }}
-              onClick={(event) => {
-                // retirar o comportamento padrão do enter (quebrar uma linha)
-                event.preventDefault();
-                // função pra enviar a msg
-                handleNovaMensage(mensagem);
+
+            <ButtonSendSticker
+              onStickerClick={(sticker) => {
+                console.log(
+                  "[Usando o componente] Salva esse stick no banco",
+                  sticker
+                );
+                handleNovaMensagem(":sticker: " + sticker);
               }}
             />
           </Box>
@@ -168,12 +184,15 @@ function Header() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          color: appConfig.theme.colors.neutrals["100"],
         }}
       >
-        <Text variant="heading5">Chat</Text>
+        <Text variant="heading4" colorVariant="light">
+          Chat
+        </Text>
         <Button
           variant="tertiary"
-          colorVariant="neutral"
+          colorVariant="light"
           label={"Logout"}
           href="/"
         />
@@ -198,7 +217,6 @@ function MessageList(props) {
       }}
     >
       {props.mensagens.map((mensagem) => {
-        // pra cada item do array ele vai retornar:
         return (
           <Text
             key={mensagem.id}
@@ -227,7 +245,7 @@ function MessageList(props) {
                   display: "inline-block",
                   marginRight: "8px",
                 }}
-                src={`https://github.com/leandroaugust0.png`}
+                src={`https://github.com/${mensagem.de}.png`}
               />
               <Text tag="strong">{mensagem.de}</Text>
               <Text
@@ -240,9 +258,7 @@ function MessageList(props) {
               >
                 {new Date().toLocaleDateString()}
               </Text>
-
               <Button
-                /* botão para excluir a mensagem */
                 styleSheet={{
                   borderRadius: "25%",
                   width: "12px",
@@ -252,9 +268,9 @@ function MessageList(props) {
                 colorVariant="neutral"
                 label={
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
+                    xmlns="https://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -262,6 +278,7 @@ function MessageList(props) {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     class="feather feather-trash"
+                    color="white"
                   >
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -271,14 +288,27 @@ function MessageList(props) {
                   variant: "tertiary",
                   colorVariant: "neutral",
                 }}
-                // quando clicar vai chamar a função de excluir a mensagem
+                // chama a função para excluir a mensagem
                 onClick={(event) => {
                   event.preventDefault();
                   handleDeleteMensagem(mensagem);
                 }}
               />
             </Box>
-            {mensagem.texto}
+            {/*Declarativo*/}
+            {/*Condicional: {mensagem.texto.startsWith(':sticker').toString()}*/}
+            {mensagem.texto.startsWith(":sticker:") ? (
+              <Image src={mensagem.texto.replace(":sticker:", "")} />
+            ) : (
+              mensagem.texto
+            )}
+            {/*
+              /* if mensagem de texto possui stickers: 
+              mostra a imagem
+              else
+              mensagem.texto 
+              {/*
+                /* {mensagem.texto}*/}
           </Text>
         );
       })}

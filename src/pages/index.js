@@ -1,7 +1,8 @@
-import appConfig from "../config.json";
+import appConfig from "../../config.json";
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
 import React from "react";
 import { useRouter } from "next/router";
+
 
 function Titulo(props) {
   console.log(props);
@@ -11,7 +12,7 @@ function Titulo(props) {
       <Tag>{props.children}</Tag>
       <style jsx>{`
         ${Tag} {
-          color: ${appConfig.theme.colors.neutrals["010"]};
+          color: ${appConfig.theme.colors.neutrals["100"]};
           font-size: 24px;
           font-weight: 600;
         }
@@ -45,7 +46,7 @@ export default function PaginaInicial() {
           alignItems: "center",
           justifyContent: "center",
           backgroundImage:
-            "url(https://initiate.alphacoders.com/images/798/stretched-1920-1081-798461.jpg?3881)",
+            "url(https://images7.alphacoders.com/798/thumb-1920-798461.jpg)",
           width: "100%",
           height: "100%",
           backgroundRepeat: "no-repeat",
@@ -78,7 +79,7 @@ export default function PaginaInicial() {
             onSubmit={function (infosDoEvento) {
               infosDoEvento.preventDefault();
               console.log("Alguém submeteu o form");
-              roteamento.push("/chat");
+              roteamento.push(`/chat?username=${username}`);
             }}
             styleSheet={{
               display: "flex",
