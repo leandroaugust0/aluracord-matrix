@@ -129,6 +129,15 @@ export default function ChatPage() {
               flexDirection: "row",
             }}
           >
+            <ButtonSendSticker
+              onStickerClick={(sticker) => {
+                console.log(
+                  "[Usando o componente] Salva esse stick no banco",
+                  sticker
+                );
+                handleNovaMensagem(":sticker: " + sticker);
+              }}
+            />
             <TextField
               value={mensagem}
               onChange={(event) => {
@@ -158,13 +167,41 @@ export default function ChatPage() {
               }}
             />
 
-            <ButtonSendSticker
-              onStickerClick={(sticker) => {
-                console.log(
-                  "[Usando o componente] Salva esse stick no banco",
-                  sticker
-                );
-                handleNovaMensagem(":sticker: " + sticker);
+            <Button
+              size="lg"
+              variant="primary"
+              colorVariant="light"
+              label={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="24"
+                  viewBox="0 0 24 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="feather feather-send"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              }
+              buttonColors={{
+                contrastColor: appConfig.theme.colors.neutrals["000"],
+                mainColor: appConfig.theme.colors.neutrals[600],
+                mainColorLight: appConfig.theme.colors.neutrals[900],
+                mainColorStrong: appConfig.theme.colors.neutrals[900],
+              }}
+              styleSheet={{
+                borderRadius: "5px",
+              }}
+              onClick={(event) => {
+                // retirar o comportamento padrão do enter (quebrar uma linha)
+                event.preventDefault();
+                // função pra enviar a msg
+                handleNovaMensagem(mensagem);
               }}
             />
           </Box>
